@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
+use App\Models\User;
 
 class DatabaseSeeder extends Seeder
 {
@@ -13,6 +14,12 @@ class DatabaseSeeder extends Seeder
      */
     public function run()
     {
-        // \App\Models\User::factory(10)->create();
+        User::factory()
+            ->count(15)
+            ->create();
+        $this->command->info('Table Users has been fulfilled');
+
+        $this->call(UserDetailsTableSeeder::class);
+        $this->command->info('Table User_Details has been fulfilled');
     }
 }

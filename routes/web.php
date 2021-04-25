@@ -2,6 +2,9 @@
 
 use Illuminate\Support\Facades\Route;
 
+use App\Models\User;
+use App\Models\UserDetail;
+
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -17,6 +20,3 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-Route::get('/users', function () {
-    return view('users');
-});

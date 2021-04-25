@@ -38,4 +38,14 @@ class Handler extends ExceptionHandler
             //
         });
     }
+
+
+    /*
+    * Make 404 message better
+    */
+    if ($exception instanceof ModelNotFoundException && $request->wantsJson()) {
+        return response()->json([
+            'error' => 'Resource not found'
+        ], 404);
+    }
 }
