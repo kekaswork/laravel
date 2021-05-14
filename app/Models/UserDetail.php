@@ -27,8 +27,15 @@ class UserDetail extends Model
     ];
 
     /**
-     * Relationship with User Model
-     */
+    *  user
+    *
+    *  Relationship with User Model
+    *
+    *  @type    function
+    *  @date    11/05/2021
+    *
+    *  @param   void
+    */
     public function user()
   	{
     	return $this->belongsTo('App\Models\User');

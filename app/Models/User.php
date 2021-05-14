@@ -2,8 +2,6 @@
 
 namespace App\Models;
 
-
-
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -48,8 +46,15 @@ class User extends Authenticatable
     ];
 
     /**
-     * Relationship with UserDetails Model
-     */
+    *  userDetail
+    *
+    *  Relationship with UserDetails Model
+    *
+    *  @type    function
+    *  @date    11/05/2021
+    *
+    *  @param   void
+    */
     public function userDetail()
     {
         return $this->hasOne('App\Models\UserDetail', 'user_id', 'id');

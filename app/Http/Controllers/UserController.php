@@ -3,94 +3,75 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\UserRequest;
 use App\Models\User;
 use App\Models\UserDetail;
 use Illuminate\Http\Request;
-//
-use App\Http\Controllers\API\BaseController as BaseController;
 use Illuminate\Support\Facades\Validator;
 
 
 class UserController extends Controller
 {
+    /**
+    *  index
+    *
+    *  This function is returning users' data as a certanly formatted JSON
+    *
+    *  @type    function
+    *  @date    11/05/2021
+    *
+    *  @param   void
+    *  @return  string
+    */
     public function index()
     {
-        //return User::all();
+        $users = User::with('userDetail')->paginate(10);
 
-        $users = User::with('userDetail')->get();
-        $collection = collect( $users );
-        $users = $collection->map(function ($user) {
-            $address = $user->userDetail;
-            return [
-                'first_name' => $user->first_name,
-                'last_name' => $user->last_name,
-                'email' => $user->email,
-                'password' => $user->password,
-                'address' => $address ? $address->user_address : '',
-            ];
-        });
-
-        return response()->json($users, 201);
+        return response()->json($users, 200);
     }
 
+    /**
+    *  show
+    *
+    *  This function will show a user's data
+    *
+    *  @type    function
+    *  @date    11/05/2021
+    *
+    *  @param User
+    *  @return  string
+    */
     public function show(User $user)
     {
-        //return $user;
-
-        $address = $user->userDetail;
 
         return response()->json([
                 'first_name' => $user->first_name,
                 'last_name' => $user->last_name,
                 'email' => $user->email,
                 'password' => $user->password,
-                'address' => $address->user_address,
+                'address' => $user->userDetail->user_address,
         ], 201);
     }
 
-    public function store(Request $request)
+    /**
+     *  store
+     *
+     *  This function will add a new user in the Database
+     *
+     * @date    11/05/2021
+     *
+     * @param UserRequest $request
+     *
+     * @return  string
+     */
+    public function store(UserRequest $request)
     {
-        // Validation
-        $validator = Validator::make($request->all(), [
-            'first_name' => 'required',
-            'last_name' => 'required',
-            'email' => 'required|unique:users|email',
-            'password' => 'required',
-        ]);
-        if($validator->fails()){
-            return $this->sendError('Validation Error.', $validator->errors());       
-        }
 
-        $input = $request->all();
-        $input['password'] = bcrypt($input['password']);
+        $input = $request->validated();
 
-        if ( array_key_exists('address', $input) ) {
-            $address = $input['address'];
-            unset( $input['address'] );
+        $user = User::create($input);
 
-            $user = User::create($input);
-
-            $user_id = $user->id;
-            $detail = UserDetail::create(
-                [
-                    'user_id' => $user_id,
-                    'user_address' => $address,
-                ]
-                
-            );
-
-            return response()->json( [
-                'first_name' => $user->first_name,
-                'last_name' => $user->last_name,
-                'email' => $user->email,
-                'password' => $user->password,
-                'address' => $detail->user_address
-            ] , 201 );
-
-        } else {
-
-            $user = User::create($input);
-
+        if ( ! $input->input('address') ) {
             return response()->json( [
                 'first_name' => $user->first_name,
                 'last_name' => $user->last_name,
@@ -98,43 +79,78 @@ class UserController extends Controller
                 'password' => $user->password
             ] , 201 );
         }
+
+        $user_id = $user->id;
+        $detail = UserDetail::create(
+            [
+                'user_id' => $user_id,
+                'user_address' => $input->input('address'),
+            ]
+        );
+
+        return response()->json( [
+            'first_name' => $user->first_name,
+            'last_name' => $user->last_name,
+            'email' => $user->email,
+            'password' => $user->password,
+            'address' => $detail->user_address
+        ] , 201 );
+
     }
 
-    public function update(Request $request, User $user)
+    /**
+     *  update
+     *
+     *  This function will update the information related to a certain user
+     *
+     * @date    11/05/2021
+     *
+     * @param UserRequest $request
+     * @param User $user
+     *
+     * @return  string
+     */
+    public function update(UserRequest $request, User $user)
     {
-        // Validation
-        $validator = Validator::make($request->all(), [
-            'first_name' => 'required',
-            'last_name' => 'required',
-            'email' => 'required|unique:users|email',
-            'password' => 'required',
-        ]);
-        if($validator->fails()){
-            return $this->sendError('Validation Error.', $validator->errors());       
-        }
 
-        $input = $request->all();
-        $input['password'] = bcrypt($input['password']);
+        $input = $request->validated();
 
         $user->update($input);
 
-        $address = $user->userDetail;
-
-        if ( $address && isset( $input['address'] ) ) {
-            $address->update([
-                'user_address' => $input['address'],
-            ]);
-        }
-
-        return response()->json( [
+        if ( ! $input->input('address') ) {
+            return response()->json( [
                 'first_name' => $user->first_name,
                 'last_name' => $user->last_name,
                 'email' => $user->email,
                 'password' => $user->password,
-                'address' => $address ? $address->user_address : '',
+            ] , 200 );
+        }
+
+        $user->userDetail->update([
+            'user_address' => $input['address'],
+        ]);
+
+        return response()->json( [
+            'first_name' => $user->first_name,
+            'last_name' => $user->last_name,
+            'email' => $user->email,
+            'password' => $user->password,
+            'address' => $user->userDetail->user_address,
         ] , 200 );
+
     }
 
+    /**
+     *  update
+     *
+     *  This function will update the information related to a certain user
+     *
+     *  @type    function
+     *  @date    11/05/2021
+     *
+     *  @param   User
+     *  @return  string
+     */
     public function delete(User $user)
     {
         $user->delete();
